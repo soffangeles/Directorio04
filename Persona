@@ -1,0 +1,141 @@
+from validate_email import validate_email
+from datetime import date
+
+
+class Persona:
+    def __init__(self, *params):
+        if len(params) == 0:
+            self.__nombre = "Juan"
+            self.__apellidos = "Martínez Sánchez"
+            self.__nacimiento = date(1990, 7, 23)
+            self.__email = "jmartinez@gmail.com"
+            self.__celular = "5544898677"
+            self.carrera = "Actuaria"
+        elif len(params) == 6:
+            self.__nombre = params[0]
+            self.__apellidos = params[1]
+            self.__nacimiento = params[2]
+            self.__email = params[3] \
+                if validate_email(params[3]) else "usuario@domino.com"
+            self.__celular = params[4]
+            self.__carrera = params[5]
+
+    @property
+    def nombre(self):
+        return self.__nombre
+
+    @property
+    def apellidos(self):
+        return self.__apellidos
+
+    @property
+    def nacimiento(self):
+        return self.__nacimiento
+
+    @property
+    def email(self):
+        return self.__email
+
+    @property
+    def celular(self):
+        return self.__celular
+
+    @property
+    def carrera(self):
+        return self.__carrera
+
+    @nombre.setter
+    def nombre(self, nombre: str):
+        self.__nombre = nombre
+
+    @apellidos.setter
+    def apellidos(self, apellidos: str):
+        self.__apellidos = apellidos
+
+    @nacimiento.setter
+    def nacimiento(self, nacimiento: str):
+        self.__nacimiento = nacimiento
+
+    @email.setter
+    def email(self, email: str):
+        if validate_email(email):
+            self.__email = email
+        else:
+            print("El correo no es válido!\n"
+                  "Se definió el correo: usuario@dominio.com")
+            self.__email = "usuario@dominio.com"
+
+    @celular.setter
+    def celular(self, celular: int):
+        self.__celular = celular
+
+    @carrera.setter
+    def carrera(self, carrera: str):
+        self.__carrera = carrera
+
+    def __str__(self):
+        return "Persona: {} {} | Nacimiento: {} | Email: {} | Celular: {} | Carrera: {}".format(
+            self.__nombre, self.__apellidos, self.__nacimiento.strftime("%d/%m/%Y"), self.__email,
+            self.__celular, self.__carrera)
+
+    def __iter__(self):
+        return iter([self.__nombre, self.__apellidos, self.__nacimiento, self.__email, self.__celular, self.__carrera])
+
+    def __llave(self) -> tuple:
+        return self.__nombre, self.__apellidos, self.__nacimiento, self.__email, self.__celular, self.__carrera
+
+    def __hash__(self) -> int:
+        return hash(self.__llave())
+
+    def __eq__(self, otra) -> bool:
+        if isinstance(otra, Persona):
+            return self.__llave() == otra.__llave()
+
+
+class Alumno(Persona):
+    def __init__(self, nombre, apellidos, nacimiento, email, celular, carrera, num_cuenta, semestre, materias):
+        super().__init__(nombre, apellidos, nacimiento, email, celular, carrera)
+        self.num_cuenta = num_cuenta
+        self.semestre = semestre
+        self.materias = materias
+
+    def __str__(self):
+        return super().__str__() + (f" | Número de cuenta: {self.num_cuenta} | Semestre: {self.semestre} "
+                                    f"| Materias: {self.materias}")
+
+class Empleado(Persona):
+    def __init__(self, nombre, apellidos, nacimiento, email, celular, carrera, departamento, salario):
+        super().__init__(nombre, apellidos, nacimiento, email, celular, carrera)
+        self.departamento = departamento
+        self.salario = salario
+
+    def __str__(self):
+        return super().__str__() + (f" | Departamento: {self.departamento}"
+                                    f"| Salario: {self.salario}")
+
+
+class Profesor(Empleado):
+    def __init__(self, nombre, apellidos, nacimiento, email, celular, carrera, num_profesor, departamento, salario,
+                 oficina, grupos):
+        super().__init__(nombre, apellidos, nacimiento, email, celular, carrera, departamento, salario)
+        self.num_profesor = num_profesor
+        self.oficina = oficina
+        self.grupos = grupos
+
+    def __str__(self):
+        return super().__str__() + (f" | Número de profesor: {self.num_profesor} "
+                                    f"| Télefono de oficina: {self.oficina} "
+                                    f"| Grupos: {self.grupos}")
+
+
+class Coordinador(Empleado):
+    def __init__(self, nombre, apellidos, nacimiento, email, celular, carrera, num_coordinador, departamento,
+                 extension, salario):
+        super().__init__(nombre, apellidos, nacimiento, email, celular, carrera, departamento, salario)
+        self.num_coordinador = num_coordinador
+        self.extension = extension
+
+    def __str__(self):
+        return super().__str__() + (f" | Número de coordinador: {self.num_coordinador} "
+                                    f" | Extensión: {self.extension} |")
+
