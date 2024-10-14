@@ -1,0 +1,174 @@
+from abc import abstractmethod, ABCMeta
+from typing import TypeVar
+import numpy as np
+
+
+T = TypeVar('T')
+
+
+class Conjuntable(metaclass=ABCMeta):
+    @abstractmethod
+    def agregar(self, elemento: T):
+        pass
+
+    @abstractmethod
+    def eliminar(self, elemento: T):
+        pass
+
+    @abstractmethod
+    def contiene(self, elemento: T) -> bool:
+        pass
+
+    @abstractmethod
+    def esta_vacio(self) -> bool:
+        pass
+
+    @abstractmethod
+    def cardinalidad(self) -> int:
+        pass
+
+    @abstractmethod
+    def vaciar(self):
+        pass
+
+    @abstractmethod
+    def union(self, otro_conjunto):
+        pass
+
+    @abstractmethod
+    def interseccion(self, otro_conjunto):
+        pass
+
+    @abstractmethod
+    def diferencia(self, otro_conjunto):
+        pass
+
+    @abstractmethod
+    def subconjunto(self, otro_conjunto) -> bool:
+        pass
+
+
+class Conjunto(Conjuntable):
+    def __init__(self, *params):
+        if len(params) == 0:
+            while True:
+                try:
+                    tamano = int(input("Introduce el número inicial de contactos: "))
+                    if tamano > 0:
+                        self.__datos = np.empty(tamano, dtype=object)
+                        self.__nd = 0
+                        break
+                    else:
+                        print("El tamaño del arreglo debe ser positivo. Intenta de nuevo.")
+                except ValueError:
+                    print("Entrada inválida. Debes introducir un número entero.")
+        elif len(params) == 1:
+            try:
+                self.__datos = np.empty(params[0], dtype=object)
+                self.__nd = 0
+            except ValueError:
+                print("El tamaño del arreglo debe ser positivo!")
+
+    @property
+    def datos(self):
+        return self.__datos
+
+    @property
+    def nd(self) -> int:
+        return self.__nd
+
+    def agregar(self, elemento):
+        if not self.contiene(elemento):
+            if self.__nd == len(self.__datos):
+                self.__datos = np.resize(self.__datos, len(self.__datos) * 2)
+            self.__datos[self.__nd] = elemento
+            self.__nd += 1
+
+    def contiene(self, elemento) -> bool:
+        for i in range(self.__nd):
+            if self.__datos[i] == elemento:
+                return True
+        return False
+
+    def eliminar(self, elemento):
+        if not self.esta_vacio() and self.contiene(elemento):
+            for i in range(self.__nd):
+                if self.__datos[i] == elemento:
+                    for j in range(i, self.__nd - 1):
+                        self.__datos[j] = self.__datos[j + 1]
+                    self.__nd -= 1
+                    self.__datos = np.resize(self.__datos, self.__nd)  # Redimensionar el arreglo
+                    break
+
+    def reducir_tamano(self):
+        self.__datos = np.resize(self.__datos, self.__nd)  # Redimensionar el arreglo
+
+    def esta_vacio(self) -> bool:
+        return self.__nd == 0
+
+    def cardinalidad(self) -> int:
+        return self.__nd
+
+    def vaciar(self):
+        self.__nd = 0
+
+    def union(self, otro_conjunto):
+        resultado = Conjunto(self.cardinalidad() + otro_conjunto.cardinalidad())
+        for i in range(self.__nd):
+            resultado.agregar(self.__datos[i])
+        for i in range(otro_conjunto.nd):
+            if not resultado.contiene(otro_conjunto.datos[i]):
+                resultado.agregar(otro_conjunto.datos[i])
+        return resultado
+
+    def interseccion(self, otro_conjunto):
+        if self.cardinalidad() <= otro_conjunto.cardinalidad():
+            res = Conjunto(self.cardinalidad())
+            aux = Conjunto(self.cardinalidad())
+            for i in range(self.__nd):
+                res.agregar(self.datos[i])
+                aux.agregar(self.datos[i])
+            for i in range(res.nd):
+                if not otro_conjunto.contiene(res.datos[i]):
+                    aux.eliminar(res.datos[i])
+        else:
+            res = Conjunto(otro_conjunto.cardinalidad())
+            aux = Conjunto(otro_conjunto.cardinalidad())
+            for i in range(otro_conjunto.nd):
+                res.agregar(otro_conjunto.datos[i])
+                aux.agregar(otro_conjunto.datos[i])
+            for i in range(res.nd):
+                if not self.contiene(res.datos[i]):
+                    aux.eliminar(res.datos[i])
+        return aux
+
+    def diferencia(self, otro_conjunto):
+        res = Conjunto(self.cardinalidad())
+        aux = Conjunto(self.cardinalidad())
+        for i in range(self.nd):
+            res.agregar(self.datos[i])
+            aux.agregar(self.datos[i])
+        for i in range(res.nd):
+            if otro_conjunto.contiene(res.datos[i]):
+                aux.eliminar(res.datos[i])
+        return aux
+
+    def subconjunto(self, otro_conjunto) -> bool:
+        for i in range(self.nd):
+            if not otro_conjunto.contiene(self.datos[i]):
+                return False
+        return True
+
+    def __eq__(self, otro_conjunto):
+        if self.cardinalidad() == otro_conjunto.cardinalidad():
+            for i in range(self.nd):
+                if not otro_conjunto.contiene(self.datos[i]):
+                    return False
+            return True
+        return False
+
+    def __str__(self):
+        conjunto = "Conjunto: \n"
+        for i in range(self.nd):
+            conjunto += str(self.datos[i]) + "\n"
+        return conjunto
